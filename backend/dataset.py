@@ -1,3 +1,4 @@
+import os
 import random
 import pandas as pd
 
@@ -22,7 +23,13 @@ def generate_dataset(records=10000):
 
         detection_probability = round(random.uniform(0.6, 1.0), 2)
 
-        result = run_once()
+        # Run simulation using generated parameters
+        result = run_once(
+            num_tanks=tanks,
+            num_uavs=uavs,
+            tank_speed=tank_speed,
+            isr_delay=delay,
+        )
 
         mission_success = (
             1
@@ -44,9 +51,12 @@ def generate_dataset(records=10000):
         )
 
         if (i + 1) % 1000 == 0:
-            print(f"{i+1} records generated")
+            print(f"{i + 1} records generated")
 
     df = pd.DataFrame(rows)
+
+    # Create datasets directory automatically
+    os.makedirs("../datasets", exist_ok=True)
 
     df.to_csv("../datasets/battlefield_dataset.csv", index=False)
 
@@ -56,5 +66,4 @@ def generate_dataset(records=10000):
 
 
 if __name__ == "__main__":
-
     generate_dataset(10000)

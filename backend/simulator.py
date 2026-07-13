@@ -4,9 +4,9 @@ from agents import Tank, UAV
 from config import (
     DEFAULT_TANKS,
     DEFAULT_UAVS,
+    DEFAULT_TANK_SPEED,
+    DEFAULT_ISR_DELAY,
     BATTLEFIELD_SIZE,
-    TANK_SPEED,
-    MAX_ISR_DELAY,
     STRIKE_RADIUS,
 )
 
@@ -42,10 +42,15 @@ def artillery_strike(old_x, old_y, tank):
     return False
 
 
-def run_once():
+def run_once(
+    num_tanks=DEFAULT_TANKS,
+    num_uavs=DEFAULT_UAVS,
+    tank_speed=DEFAULT_TANK_SPEED,
+    isr_delay=DEFAULT_ISR_DELAY,
+):
 
-    tanks = [Tank(i + 1) for i in range(DEFAULT_TANKS)]
-    uavs = [UAV(i + 1) for i in range(DEFAULT_UAVS)]
+    tanks = [Tank(i + 1) for i in range(num_tanks)]
+    uavs = [UAV(i + 1) for i in range(num_uavs)]
 
     destroyed = 0
 
@@ -59,19 +64,17 @@ def run_once():
         for uav in uavs:
 
             if detect(uav, tank):
+
                 detected = True
 
                 old_x = tank.x
                 old_y = tank.y
 
-                # ISR Delay
-                delay = random.randint(0, MAX_ISR_DELAY)
+                delay = isr_delay
 
-                # Tank moves while ISR info reaches artillery
                 for _ in range(delay):
-                    move_tank(tank, TANK_SPEED)
+                    move_tank(tank, tank_speed)
 
-                # Artillery attacks old location
                 if artillery_strike(old_x, old_y, tank):
                     tank.alive = False
                     destroyed += 1
@@ -79,12 +82,12 @@ def run_once():
                 break
 
         if not detected:
-            move_tank(tank, TANK_SPEED)
+            move_tank(tank, tank_speed)
 
     return {
-        "total_tanks": DEFAULT_TANKS,
+        "total_tanks": num_tanks,
         "destroyed": destroyed,
-        "survived": DEFAULT_TANKS - destroyed,
+        "survived": num_tanks - destroyed,
     }
 
 
