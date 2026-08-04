@@ -1,14 +1,35 @@
 import { useState } from "react";
+import { runCustomSimulation } from "../services/api";
 
-function SimulationControls() {
+function SimulationControls({ onResult }) {
   const [isrDelay, setIsrDelay] = useState(5);
   const [tanks, setTanks] = useState(50);
   const [uavs, setUavs] = useState(3);
   const [artilleryRange, setArtilleryRange] = useState(120);
   const [detectionProb, setDetectionProb] = useState(0.85);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  function runSimulation() {
-    alert("Simulation Started!");
+  async function runSimulation() {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await runCustomSimulation({
+        tanks: Number(tanks),
+        uavs: Number(uavs),
+        isr_delay: Number(isrDelay),
+        tank_speed: 3,
+      });
+
+      if (onResult) {
+        onResult(response.Result);
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -18,6 +39,7 @@ function SimulationControls() {
         padding: "25px",
         borderRadius: "12px",
         width: "350px",
+        color: "white",
       }}
     >
       <h2>Simulation Controls</h2>
@@ -81,9 +103,11 @@ function SimulationControls() {
       <br />
       <br />
 
-      <button onClick={runSimulation}>
-        Run Simulation
+      <button onClick={runSimulation} disabled={loading}>
+        {loading ? "Running..." : "Run Simulation"}
       </button>
+
+      {error && <p style={{ color: "#ff5555" }}>{error}</p>}
     </div>
   );
 }

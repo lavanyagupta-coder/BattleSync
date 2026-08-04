@@ -314,13 +314,29 @@ class BattleSyncPipeline:
 
 ## Dataset
 
-Rows: {len(dataframe)}
+- Rows: {len(dataframe)}
+- Training samples: {len(x_train)}
+- Testing samples: {len(x_test)}
 
-Training samples: {len(x_train)}
-
-Testing samples: {len(x_test)}
+## Features
 
 {features}
+
+## Model Comparison
+
 {comparison_markdown}
-{best_name}
+
+## Best Model: {best_name}
+
+### Tuned Parameters
+
+```json
 {parameters}
+```
+
+### Metrics
+
+```json
+{metrics}
+```
+"""

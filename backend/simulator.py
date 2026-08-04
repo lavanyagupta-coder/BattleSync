@@ -11,6 +11,7 @@ from config import (
 )
 
 from isr import detect
+from utils import success_percentage
 
 
 def move_tank(tank, speed):
@@ -84,10 +85,13 @@ def run_once(
         if not detected:
             move_tank(tank, tank_speed)
 
+    survived = num_tanks - destroyed
+
     return {
         "total_tanks": num_tanks,
         "destroyed": destroyed,
-        "survived": num_tanks - destroyed,
+        "survived": survived,
+        "success_percentage": success_percentage(destroyed, num_tanks),
     }
 
 
