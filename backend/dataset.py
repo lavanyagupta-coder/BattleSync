@@ -1,5 +1,6 @@
 import os
 import random
+
 import pandas as pd
 
 from simulator import run_once
@@ -31,9 +32,9 @@ def generate_dataset(records=10000):
             isr_delay=delay,
         )
 
-        mission_success = (
-            1
-            if result["destroyed"] >= result["total_tanks"] * 0.70
+        destroyed_ratio = (
+            result["destroyed"] / result["total_tanks"]
+            if result["total_tanks"] > 0
             else 0
         )
 
@@ -46,7 +47,7 @@ def generate_dataset(records=10000):
                 "Detection_Probability": detection_probability,
                 "Destroyed": result["destroyed"],
                 "Survived": result["survived"],
-                "Mission_Success": mission_success,
+                "Destroyed_Ratio": destroyed_ratio,
             }
         )
 
@@ -55,12 +56,29 @@ def generate_dataset(records=10000):
 
     df = pd.DataFrame(rows)
 
+    # Label success relative to the dataset's own median destruction ratio.
+    # A fixed high threshold (e.g. 70%) can be effectively unreachable given
+    # detection coverage limits, which collapses the target to a single
+    # class and breaks training. Using the median guarantees a meaningful,
+    # roughly balanced split between "above average" and "below average"
+    # mission outcomes.
+    median_ratio = df["Destroyed_Ratio"].median()
+
+    df["Mission_Success"] = (
+        df["Destroyed_Ratio"] >= median_ratio
+    ).astype(int)
+
+    df = df.drop(columns=["Destroyed_Ratio"])
+
     # Create datasets directory automatically
     os.makedirs("../datasets", exist_ok=True)
 
     df.to_csv("../datasets/battlefield_dataset.csv", index=False)
 
     print("\nDataset Saved Successfully!")
+    print(f"Median destroyed ratio used as success threshold: {median_ratio:.4f}")
+    print(f"Class balance -> Success: {(df['Mission_Success']==1).sum()}, "
+          f"Failure: {(df['Mission_Success']==0).sum()}")
 
     return df
 
